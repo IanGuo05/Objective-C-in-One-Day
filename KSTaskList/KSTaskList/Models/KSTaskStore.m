@@ -7,15 +7,21 @@
 
 #import "KSTaskStore.h"
 
+@interface KSTaskStore ()
+
+@property(nonatomic, strong)NSMutableArray<KSTask *> *tasks;
+
+@end
+
 @implementation KSTaskStore
 
 + (instancetype)sharedStore {
-    static KSTaskStore *instance;
+    static KSTaskStore *intance;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
-        instance = [[self alloc] init];
+        intance = [[self alloc] init];
     });
-    return instance;
+    return intance;
 }
 
 - (instancetype)init {

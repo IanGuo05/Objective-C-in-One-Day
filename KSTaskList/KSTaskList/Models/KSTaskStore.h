@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface KSTaskStore : NSObject
 
-@property(nonatomic, strong)NSMutableArray<KSTask *> *tasks;
+//@property(nonatomic, strong)NSMutableArray<KSTask *> *tasks;
 
 + (instancetype)sharedStore;
 - (NSArray<KSTask *> *)allTasks;
