@@ -6,20 +6,47 @@
 //
 
 #import "KSTaskListListViewController.h"
+#import "KSTaskListDetailViewController.h"
 #import "KSTask.h"
 #import "KSTaskStore.h"
 #import "KSUIColor.h"
 
-@implementation KSTaskListListViewController
+@interface KSTaskListListViewController ()
+
+@property(nonatomic, strong)UIBarButtonItem *createViewButton;
+
+@end
+
+@implementation KSTaskListListViewController 
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"Task Leeeest";
     
-    [[KSTaskStore sharedStore] addKSTask:[KSTask taskWithTitle:@"Learning OC Syntax"]];
-    [[KSTaskStore sharedStore] addKSTask:[[KSTask alloc] initWithTitle:@"Complete OC Practicing Projoect" priority:KSPriorityHigh]];
-    [[KSTaskStore sharedStore] addKSTask:[[KSTask alloc] initWithTitle:@"Release the TaskList App" priority:KSPriorityLow]];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"+"
+                                                                              style:UIBarButtonItemStylePlain
+                                                                             target:self
+                                                                             action:@selector(addButtonPressed)];
     
+//    [[KSTaskStore sharedStore] addKSTask:[KSTask taskWithTitle:@"Learning OC Syntax"]];
+//    [[KSTaskStore sharedStore] addKSTask:[[KSTask alloc] initWithTitle:@"Complete OC Practicing Projoect" priority:KSPriorityLow]];
+//    [[KSTaskStore sharedStore] addKSTask:[[KSTask alloc] initWithTitle:@"Release the TaskList App" priority:KSPriorityHigh]];
+    
+    __weak typeof(self) weakSelf = self;
+    [[KSTaskStore sharedStore] loadTasksWithCompletion:^(NSArray<KSTask *> *tasks) {
+        [weakSelf.tableView reloadData];
+    }];
+}
+
+- (void)addButtonPressed {
+    KSTaskListDetailViewController *vc = [[KSTaskListDetailViewController alloc] initWithNewTask];
+    vc.delegate = self;
+    
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
     __weak typeof(self) weakSelf = self;
     [[KSTaskStore sharedStore] loadTasksWithCompletion:^(NSArray<KSTask *> *tasks) {
         [weakSelf.tableView reloadData];
@@ -45,18 +72,33 @@
     return cell;
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    KSTask *currentTask = [[KSTaskStore sharedStore] allTasks][indexPath.row];
+    KSTaskListDetailViewController *vc = [[KSTaskListDetailViewController alloc] initWithTask:currentTask];
+    
+    vc.delegate = self;
+    
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
 #pragma mark - KSTaskVCProtocol
 
 - (void)taskDetail:(KSTaskListDetailViewController *)vc didSaveTask:(KSTask *)task {
+    [[KSTaskStore sharedStore] updateTasks:task];
     
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)taskDetail:(KSTaskListDetailViewController *)vc didCreateTask:(KSTask *)task {
+    [[KSTaskStore sharedStore] addKSTask:task];
     
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)taskDetail:(KSTaskListDetailViewController *)vc didDeleteTask:(KSTask *)task {
+    [[KSTaskStore sharedStore] removeKSTask:task];
     
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 @end

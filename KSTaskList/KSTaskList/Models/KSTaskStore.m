@@ -28,6 +28,7 @@
     if (self = [super init]) {
         self.tasks = [[NSMutableArray alloc] init];
     }
+    [self loadKSTaskFromDisk];
     return self;
 }
 
@@ -47,13 +48,17 @@
         }
     }
     [self.tasks addObject:task];
+    [self.tasks sortUsingComparator:^NSComparisonResult(KSTask *task1, KSTask *task2) {
+        return [@(task2.taskPriority) compare:@(task1.taskPriority)];
+    }];
 }
 
-- (void)removeKSTask:(NSInteger)index {
-    NSParameterAssert(index < self.tasks.count);
-    if (index >= self.tasks.count) return;
+- (void)removeKSTask:(KSTask *)task {
+    NSParameterAssert(task != nil);
+    NSParameterAssert(task.taskID.length > 0);
+    if (!task || !task.taskID.length) return;
     
-    [self.tasks removeObjectAtIndex:index];
+    [self.tasks removeObject:task];
 }
 
 - (BOOL)updateTasks:(KSTask *)task {
@@ -64,10 +69,66 @@
     for (NSInteger index = 0; index < self.tasks.count; index++) {
         if ([self.tasks[index].taskID isEqualToString:task.taskID]) {
             self.tasks[index] = task;
+            [self.tasks sortUsingComparator:^NSComparisonResult(KSTask *task1, KSTask *task2) {
+                return [@(task2.taskPriority) compare:@(task1.taskPriority)];
+            }];
             return YES;
         }
     }
     return NO;
+}
+
+- (void)loadKSTaskFromDisk {
+    NSURL *documentsDir = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
+                                                                 inDomains:NSUserDomainMask].firstObject;
+    NSURL *fileURL = [documentsDir URLByAppendingPathComponent:@"tasks.json"];
+    
+    NSData *json = [NSData dataWithContentsOfURL:fileURL];
+    if (!json) return;
+    
+    NSError *error = nil;
+    NSArray *dictArray = [NSJSONSerialization JSONObjectWithData:json
+                                                         options:NSJSONReadingMutableContainers
+                                                           error:&error];
+    if (error || ![dictArray isKindOfClass:[NSArray class] ]) {
+        NSLog(@"Deserialization Failed, Error: %@", error);
+        return;
+    }
+    
+    for (NSDictionary *dict in dictArray) {
+        [self.tasks addObject:[KSTask taskFromDictionary:dict]];
+    }
+    [self.tasks sortUsingComparator:^NSComparisonResult(KSTask *task1, KSTask *task2) {
+        return [@(task2.taskPriority) compare:@(task1.taskPriority)];
+    }];
+}
+
+- (void)saveKSTasksToDisk {
+    NSMutableArray *dictArray = [NSMutableArray array];
+    for (KSTask *currentKSTask in self.tasks) {
+        [dictArray addObject:[currentKSTask toDictionary] ];
+    }
+    
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictArray
+                                                       options:NSJSONWritingPrettyPrinted
+                                                         error:&error];
+    if (error || !jsonData) {
+        NSLog(@"Serialization Failed, Error: %@", error);
+        return;
+    }
+    
+    NSURL *documentsDir = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
+                                                                 inDomains:NSUserDomainMask].firstObject;
+    NSURL *fileURL = [documentsDir URLByAppendingPathComponent:@"tasks.json"];
+    
+    BOOL success = [jsonData writeToURL:fileURL
+                                options:NSDataWritingAtomic
+                                  error:&error];
+    if (error || !success) {
+        NSLog(@"Write File Failed, Error: %@", error);
+        return;
+    }
 }
 
 - (void)loadTasksWithCompletion:(void (^)(NSArray<KSTask *> *))completion {

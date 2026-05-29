@@ -11,9 +11,9 @@
 
 + (UIColor *)taskColorByPriority:(KSTaskPriority)priority {
     switch (priority) {
-        case KSPriorityLow: return [UIColor colorWithRed:1.0 green:0.9 blue:0.9 alpha:1];
+        case KSPriorityLow: return [UIColor colorWithWhite:0.95 alpha:1];
         case KSPriorityNormal: return [UIColor whiteColor];
-        case KSPriorityHigh: return [UIColor colorWithWhite:0.95 alpha:1];
+        case KSPriorityHigh: return [UIColor colorWithRed:1.0 green:0.9 blue:0.9 alpha:1];
     }
 }
 

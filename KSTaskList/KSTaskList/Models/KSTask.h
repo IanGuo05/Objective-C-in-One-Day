@@ -11,7 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface KSTask : NSObject
 
-typedef NS_ENUM(NSInteger, KSTaskPriority) {
+typedef NS_ENUM(NSUInteger, KSTaskPriority) {
     KSPriorityLow,
     KSPriorityNormal,
     KSPriorityHigh

@@ -17,8 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)sharedStore;
 - (NSArray<KSTask *> *)allTasks;
 - (void)addKSTask:(KSTask *)task;
-- (void)removeKSTask:(NSInteger) index;
+- (void)removeKSTask:(KSTask *)task;
 - (BOOL)updateTasks:(KSTask *)task;
+- (void)loadKSTasksFromDisk;
+- (void)saveKSTasksToDisk;
 - (void)loadTasksWithCompletion:(void (^)(NSArray<KSTask *> *))completion;
 
 @end

@@ -12,13 +12,18 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSUInteger, KSTaskDetailMode) {
+    KSTaskDetailModeEdit,
+    KSTaskDetailModeCreate
+};
+
 @interface KSTaskListDetailViewController : UIViewController
 
-@property (nonatomic, strong) KSTask *task;
-@property (nonatomic, strong) UITextField *titleField;
 @property (nonatomic, weak) id<KSTaskVCProtocol> delegate;
+@property (nonatomic, assign) KSTaskDetailMode mode;
 
 - (instancetype)initWithTask:(KSTask *)task;
+- (instancetype)initWithNewTask;
 
 @end
 
